@@ -1,1 +1,1 @@
-# ayon-usd-tester
+# AYON USD testing app
