@@ -78,6 +78,7 @@ def build_environment(
     machine_settings_file: str,
     resolver_dir: str,
     dcc_executable: str | None = None,
+    usd_root: str | None = None,
     pinning: bool = False,
 ):
     try:
@@ -104,6 +105,31 @@ def build_environment(
         env_vars["PATH"] = os.pathsep.join(
             value for value in (str(houdini_bin), os.environ.get("PATH", ""))
             if value
+        )
+
+    if usd_root:
+        usd_root_path = Path(usd_root).expanduser().resolve()
+        usd_python_path = usd_root_path / "lib" / "python"
+        usd_library_path = usd_root_path / "lib"
+        if not usd_python_path.is_dir() or not usd_library_path.is_dir():
+            raise FileNotFoundError(
+                f"Invalid USD_ROOT: expected lib and lib/python under "
+                f"{usd_root_path}"
+            )
+
+        env_vars["USD_ROOT"] = str(usd_root_path)
+        env_vars["PYTHONPATH"] = os.pathsep.join(
+            value for value in (
+                str(usd_python_path),
+                os.environ.get("PYTHONPATH", ""),
+            ) if value
+        )
+        env_vars["LD_LIBRARY_PATH"] = os.pathsep.join(
+            value for value in (
+                str(usd_library_path),
+                env_vars.get("LD_LIBRARY_PATH", ""),
+                os.environ.get("LD_LIBRARY_PATH", ""),
+            ) if value
         )
 
     if not pinning:
@@ -204,7 +230,7 @@ def build_environment(
             "AYON_LOGGIN_LOGGIN_KEYS": resolver_settings["ayon_logger_logging_keys"],
         }
 
-    resolver_env = get_resolver_setup_info(resolver_dir, settings, {})
+    resolver_env = get_resolver_setup_info(resolver_dir, settings, env_vars)
 
     return {**env_vars, **resolver_env}
 
@@ -232,7 +258,11 @@ def get_dcc_config(dcc_config_path: str | None) -> dict:
     return dcc_config[system_platform]
 
 
-def get_usdresolve_path(dcc_executable: str, dcc_type: str) -> Path:
+def get_usdresolve_path(
+    dcc_executable: str,
+    dcc_type: str,
+    usd_root: str | None = None,
+) -> Path:
     """
     Get the path to the usdresolve executable for the specified DCC.
 
@@ -253,8 +283,14 @@ def get_usdresolve_path(dcc_executable: str, dcc_type: str) -> Path:
         executable_name = "usdresolve.exe" if os.name == "nt" else "usdresolve"
         usdresolve_path = dcc_executable_path.parent / executable_name
     elif dcc_type.lower() == "maya":
+        if not usd_root:
+            raise ValueError(
+                "Maya requires 'usd_root' in the DCC configuration"
+            )
         executable_name = "usdresolve.exe" if os.name == "nt" else "usdresolve"
-        usdresolve_path = dcc_executable_path.parent / "bin" / executable_name
+        usdresolve_path = (
+            Path(usd_root).expanduser().resolve() / "bin" / executable_name
+        )
     else:
         raise ValueError(f"Unsupported DCC type: {dcc_type}")
 

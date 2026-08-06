@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from stats_creator import StatsCreator
 
@@ -96,6 +97,8 @@ def run_resolve_test(
     dcc_executable,
     usdresolve_path,
     resolver_dir,
+    dcc_type,
+    usd_root=None,
     test_types=None,
 ):
     if test_types is None:
@@ -111,6 +114,7 @@ def run_resolve_test(
             machine_settings_file="path/to/machine_settings.json",
             resolver_dir=resolver_dir,
             dcc_executable=dcc_executable,
+            usd_root=usd_root,
             pinning=(test_type == "pinning-resolve"),
         )
 
@@ -119,6 +123,14 @@ def run_resolve_test(
         for uri, expected_path in uris.items():
             total_tests += 1
             command = [str(usdresolve_path), uri]
+            if dcc_type.lower() == "maya":
+                dcc_path = Path(dcc_executable).expanduser().resolve()
+                mayapy_path = dcc_path.parent / "mayapy"
+                if not mayapy_path.is_file():
+                    raise FileNotFoundError(
+                        f"Maya Python executable was not found: {mayapy_path}"
+                    )
+                command.insert(0, str(mayapy_path))
             result = subprocess.run(
                 command,
                 env={**os.environ, **env},
@@ -208,7 +220,16 @@ def main():
                 continue
             print(f"Running tests for {dcc_name} version {version}")
 
-            usdresolve_path = utils.get_usdresolve_path(version_config["executable"], dcc_name)
+            usd_root = version_config.get("usd_root")
+            if not usd_root and dcc_name.lower() == "maya":
+                # Useful for a one-off Maya test; per-version configuration
+                # is preferred when several Maya installations are tested.
+                usd_root = os.environ.get("USD_ROOT")
+            usdresolve_path = utils.get_usdresolve_path(
+                version_config["executable"],
+                dcc_name,
+                usd_root=usd_root,
+            )
 
             total_tests, failed_tests = run_resolve_test(
                 server=args.server,
@@ -217,6 +238,8 @@ def main():
                 dcc_executable=version_config["executable"],
                 usdresolve_path=usdresolve_path,
                 resolver_dir=version_config["resolver_dir"],
+                dcc_type=dcc_name,
+                usd_root=usd_root,
                 test_types=args.test_type
             )
             stats.update(dcc_name, version, total_tests, failed_tests)

@@ -37,7 +37,8 @@
     "maya": {
       "2026": {
         "executable": "/usr/autodesk/maya2026/bin/maya",
-        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2026_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2026_Py311_Linux_Linux_x86_64",
+        "usd_root": "/usr/autodesk/mayausd/maya2026/0.34.0_202510081000-bb53fda/mayausd/USD_0.25.5"
       },
       "2025": {
         "executable": "/usr/autodesk/maya2025/bin/maya",
