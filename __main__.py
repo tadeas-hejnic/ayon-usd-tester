@@ -207,7 +207,7 @@ def main():
             run_resolve_test(
                 server=args.server,
                 project_name=args.project,
-                uri=uris if uris else args.uri,
+                uris=uris if uris else args.uri,
                 dcc_executable=version_config["executable"],
                 resolver_dir=version_config["resolver_dir"],
                 expected_path=args.expected_path,
