@@ -11,7 +11,6 @@ def parse_arguments():
     parser.add_argument(
         "--server", 
         type=str, 
-        nargs="+", 
         help="Server URL(s) to test against (e.g., http://localhost:5000)",
         required=True
     )
@@ -66,6 +65,7 @@ def run_resolve_test(
     project_name,
     uri,
     dcc_executable,
+    resolver_dir,
     test_types=None,
 ):
     if test_types is None:
@@ -76,10 +76,13 @@ def run_resolve_test(
             server_url=server,
             project_name=project_name,
             machine_settings_file="path/to/machine_settings.json",
-            resolver_dir="path/to/resolver_dir",
+            resolver_dir=resolver_dir,
+            dcc_executable=dcc_executable,
             pinning=(test_type == "pinning-resolve"),
         )
 
+
+        
         usdresolve_path = utils.get_usdresolve_path(dcc_executable)
 
         print(f"Using usdresolve: {usdresolve_path}")
@@ -100,20 +103,21 @@ def main():
     for dcc_name, dcc_versions in dcc_config.items():
         if args.dcc != "ALL" and args.dcc != dcc_name:
             continue
-        for version in dcc_versions:
+        for version, version_config in dcc_versions.items():
             if args.version != "ALL" and args.version != version:
                 continue
             print(f"Running tests for {dcc_name} version {version}")
             run_resolve_test(
                 server=args.server,
-                project=args.project,
+                project_name=args.project,
                 uri=args.uri,
-                dcc_executable=version["executable"],
+                dcc_executable=version_config["executable"],
+                resolver_dir=version_config["resolver_dir"],
                 test_types=args.test_type
             )
 
-    # Run tests
-    run_resolve_test(args.server, args.project, args.dcc, args.version)
+    # # Run tests
+    # run_resolve_test(args.server, args.project, args.dcc, args.version)
 
 
 if __name__ == "__main__":
