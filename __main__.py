@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 
+from stats_creator import StatsCreator
+
 import utils
 
 
@@ -98,6 +100,9 @@ def run_resolve_test(
     if test_types is None:
         test_types = ["resolve"]
 
+    total_tests = 0
+    failed_tests = 0
+
     for test_type in test_types:
         env = utils.build_environment(
             server_url=server,
@@ -111,9 +116,6 @@ def run_resolve_test(
         usdresolve_path = utils.get_usdresolve_path(dcc_executable)
 
         print(_color(f"Using usdresolve: {usdresolve_path}", _CYAN))
-
-        total_tests = 0
-        failed_tests = 0
 
         for uri, expected_path in uris.items():
             total_tests += 1
@@ -134,12 +136,14 @@ def run_resolve_test(
 
             if result.returncode != 0:
                 failed_tests += 1
-                raise subprocess.CalledProcessError(
+                error = subprocess.CalledProcessError(
                     result.returncode,
                     command,
                     output=result.stdout,
                     stderr=result.stderr,
                 )
+                print(_color(f"Test failed: {error}", _RED), file=sys.stderr)
+                continue
 
             if expected_path:
                 # usdresolve prints the resolved filesystem path after its
@@ -152,9 +156,14 @@ def run_resolve_test(
                 ]
                 if not output_lines:
                     failed_tests += 1
-                    raise RuntimeError(
-                    "usdresolve returned no resolved path to compare"
+                    print(
+                        _color(
+                            "Test failed: usdresolve returned no resolved path",
+                            _RED,
+                        ),
+                        file=sys.stderr,
                     )
+                    continue
 
                 actual_path = output_lines[-1]
 
@@ -171,7 +180,7 @@ def run_resolve_test(
                     f"  actual:   {actual_path}"
                     )
                     print(_color(message, _RED), file=sys.stderr)
-                    raise AssertionError(message)
+                    continue
 
                 print(
                     _color(
@@ -180,12 +189,7 @@ def run_resolve_test(
                     )
                 )
 
-        print(
-            _color(
-            f"Testing completed. Total tests: {total_tests}, Failed tests: {failed_tests}",
-            _CYAN,
-            )
-        )
+    return total_tests, failed_tests
 
 
 def main():
@@ -195,6 +199,7 @@ def main():
     dcc_config = utils.get_dcc_config(args.dcc_config)
 
     uris = utils.get_uris(args.uri_file)
+    stats = StatsCreator()
 
     for dcc_name, dcc_versions in dcc_config.items():
         if args.dcc != "ALL" and args.dcc != dcc_name:
@@ -203,7 +208,7 @@ def main():
             if args.version != "ALL" and args.version != version:
                 continue
             print(f"Running tests for {dcc_name} version {version}")
-            run_resolve_test(
+            total_tests, failed_tests = run_resolve_test(
                 server=args.server,
                 project_name=args.project,
                 uris=uris if uris else {args.uri: args.expected_path},
@@ -211,6 +216,13 @@ def main():
                 resolver_dir=version_config["resolver_dir"],
                 test_types=args.test_type
             )
+            stats.update(dcc_name, version, total_tests, failed_tests)
+
+    summary_color = _RED if stats.failed_tests else _GREEN
+    print(_color(str(stats), summary_color))
+
+    if stats.failed_tests:
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
