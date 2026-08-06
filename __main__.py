@@ -94,6 +94,7 @@ def run_resolve_test(
     project_name,
     uris,
     dcc_executable,
+    usdresolve_path,
     resolver_dir,
     test_types=None,
 ):
@@ -112,8 +113,6 @@ def run_resolve_test(
             dcc_executable=dcc_executable,
             pinning=(test_type == "pinning-resolve"),
         )
-        
-        usdresolve_path = utils.get_usdresolve_path(dcc_executable)
 
         print(_color(f"Using usdresolve: {usdresolve_path}", _CYAN))
 
@@ -208,11 +207,15 @@ def main():
             if args.version != "ALL" and args.version != version:
                 continue
             print(f"Running tests for {dcc_name} version {version}")
+
+            usdresolve_path = utils.get_usdresolve_path(version_config["executable"], dcc_name)
+
             total_tests, failed_tests = run_resolve_test(
                 server=args.server,
                 project_name=args.project,
                 uris=uris if uris else {args.uri: args.expected_path},
                 dcc_executable=version_config["executable"],
+                usdresolve_path=usdresolve_path,
                 resolver_dir=version_config["resolver_dir"],
                 test_types=args.test_type
             )

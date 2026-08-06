@@ -232,16 +232,35 @@ def get_dcc_config(dcc_config_path: str | None) -> dict:
     return dcc_config[system_platform]
 
 
-def get_usdresolve_path(dcc_executable: str) -> Path:
-    houdini_executable = Path(dcc_executable).expanduser().resolve()
+def get_usdresolve_path(dcc_executable: str, dcc_type: str) -> Path:
+    """
+    Get the path to the usdresolve executable for the specified DCC.
 
-    executable_name = "usdresolve.exe" if os.name == "nt" else "usdresolve"
-    usdresolve_path = houdini_executable.parent / executable_name
+    Args:
+        dcc_executable (str): Path to the DCC executable.
+        dcc_type (str): Type of the DCC (e.g., "houdini", "maya").
+
+    Returns:
+        Path: Path to the usdresolve executable.
+
+    Raises:
+        FileNotFoundError: If the usdresolve executable is not found.
+        ValueError: If the DCC type is unsupported.
+    """
+    dcc_executable_path = Path(dcc_executable).expanduser().resolve()
+
+    if dcc_type.lower() == "houdini":
+        executable_name = "usdresolve.exe" if os.name == "nt" else "usdresolve"
+        usdresolve_path = dcc_executable_path.parent / executable_name
+    elif dcc_type.lower() == "maya":
+        executable_name = "usdresolve.exe" if os.name == "nt" else "usdresolve"
+        usdresolve_path = dcc_executable_path.parent / "bin" / executable_name
+    else:
+        raise ValueError(f"Unsupported DCC type: {dcc_type}")
 
     if not usdresolve_path.is_file():
         raise FileNotFoundError(
-            f"usdresolve was not found next to Houdini executable: "
-            f"{usdresolve_path}"
+            f"usdresolve was not found for {dcc_type}: {usdresolve_path}"
         )
 
     return usdresolve_path
