@@ -245,3 +245,28 @@ def get_usdresolve_path(dcc_executable: str) -> Path:
         )
 
     return usdresolve_path
+
+
+def get_uris(uri_file_path: str | None) -> dict[str, str]:
+    """
+    Load URIs and their expected resolved paths from a JSON file.
+
+    Args:
+        uri_file_path (str | None): Path to the JSON file containing URIs and resolved paths.
+
+    Returns:
+        dict[str, str]: A dictionary where keys are URIs and values are the expected resolved paths.
+    """
+    if uri_file_path is None:
+        return {}
+
+    if not os.path.exists(uri_file_path):
+        raise FileNotFoundError(f"URI file not found at {uri_file_path}")
+
+    with open(uri_file_path, "r") as f:
+        uris = json.load(f)
+
+    if not isinstance(uris, dict):
+        raise TypeError(f"Expected a JSON object in the file {uri_file_path}")
+
+    return uris
