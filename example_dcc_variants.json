@@ -3,49 +3,49 @@
     "houdini": {
       "21.0.512": {
         "executable": "/opt/hfs21.0.512/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini21_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini21_Py311_Linux_Linux_x86_64"
       },
       "20.5.892": {
         "executable": "/opt/hfs20.5.892/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini205_Py310_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini205_Py310_Linux_Linux_x86_64"
       },
       "20.5.654": {
         "executable": "/opt/sidefx/hfs20.5.654/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini205_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini205_Py311_Linux_Linux_x86_64"
       },
       "20.0.1358": {
         "executable": "/home/opt/hfs20.0.1358/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini20_Py39_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini20_Py39_Linux_Linux_x86_64"
       },
       "19.5.805": {
         "executable": "/home/opt/sidefx/hfs19.5.805/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini195_Py39_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini195_Py39_Linux_Linux_x86_64"
       },
       "19.5.773": {
         "executable": "/home/opt/sidefx/hfs19.5.773/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini195_Py37_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini195_Py37_Linux_Linux_x86_64"
       },
       "20.0.896": {
         "executable": "/home/opt/sidefx/hfs20.0.896/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini20_Py310_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini20_Py310_Linux_Linux_x86_64"
       },
       "22.0.368": {
         "executable": "/opt/hfs22.0/bin/houdini",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Houdini22_Py313_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Houdini22_Py313_Linux_Linux_x86_64"
       }
     },
     "maya": {
       "2026": {
         "executable": "/usr/autodesk/maya2026/bin/maya",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Maya2026_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2026_Py311_Linux_Linux_x86_64"
       },
       "2025": {
         "executable": "/usr/autodesk/maya2025/bin/maya",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Maya2025_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2025_Py311_Linux_Linux_x86_64"
       },
       "2024": {
         "executable": "/usr/autodesk/maya2024/bin/maya",
-        "resolver_path": "/home/ynput/dev/ayon-usd-resolver/install/Maya2024_2_Py310_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2024_2_Py310_Linux_Linux_x86_64"
       }
     }
   }
