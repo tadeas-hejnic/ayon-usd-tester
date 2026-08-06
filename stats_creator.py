@@ -28,8 +28,48 @@ class StatsCreator:
         return self.app_stats.get(app_name, {}).get(version, {"total": 0, "failed": 0})
 
     def __str__(self):
-        overall_stats = f"Overall Testing: Total tests: {self.total_tests}, Failed tests: {self.failed_tests}\n"
-        app_stats = "\n".join(
-            f"{app}: {versions}" for app, versions in self.app_stats.items()
+        rows = []
+        for app_name, versions in self.app_stats.items():
+            for version, values in versions.items():
+                rows.append(
+                    (
+                        app_name,
+                        version,
+                        str(values["total"]),
+                        str(values["failed"]),
+                    )
+                )
+
+        headers = ("Application", "Version", "Total", "Failed")
+        rows.append(
+            (
+                "Overall",
+                "-",
+                str(self.total_tests),
+                str(self.failed_tests),
+            )
         )
-        return overall_stats + app_stats
+
+        widths = [
+            max(len(header), *(len(row[index]) for row in rows))
+            for index, header in enumerate(headers)
+        ]
+
+        def format_row(row):
+            return "| " + " | ".join(
+                value.ljust(width)
+                for value, width in zip(row, widths)
+            ) + " |"
+
+        separator = "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+        return "\n".join(
+            [
+                "Resolver test summary",
+                separator,
+                format_row(headers),
+                separator,
+                *(format_row(row) for row in rows),
+                separator,
+            ]
+        )
