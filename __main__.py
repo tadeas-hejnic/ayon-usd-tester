@@ -93,7 +93,6 @@ def run_resolve_test(
     uris,
     dcc_executable,
     resolver_dir,
-    expected_path=None,
     test_types=None,
 ):
     if test_types is None:
@@ -116,7 +115,7 @@ def run_resolve_test(
         total_tests = 0
         failed_tests = 0
 
-        for uri in uris:
+        for uri, expected_path in uris.items():
             total_tests += 1
             command = [str(usdresolve_path), uri]
             result = subprocess.run(
@@ -207,16 +206,11 @@ def main():
             run_resolve_test(
                 server=args.server,
                 project_name=args.project,
-                uris=uris if uris else args.uri,
+                uris=uris if uris else {args.uri: args.expected_path},
                 dcc_executable=version_config["executable"],
                 resolver_dir=version_config["resolver_dir"],
-                expected_path=args.expected_path,
                 test_types=args.test_type
             )
-
-    # # Run tests
-    # run_resolve_test(args.server, args.project, args.dcc, args.version)
-
 
 if __name__ == "__main__":
     main()
