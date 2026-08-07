@@ -42,11 +42,13 @@
       },
       "2025": {
         "executable": "/usr/autodesk/maya2025/bin/maya",
-        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2025_Py311_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2025_Py311_Linux_Linux_x86_64",
+        "usd_root": "/usr/autodesk/mayausd/maya2025/0.27.0_202402071410-bf4bd3e/mayausd/USD"
       },
       "2024": {
         "executable": "/usr/autodesk/maya2024/bin/maya",
-        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2024_2_Py310_Linux_Linux_x86_64"
+        "resolver_dir": "/home/ynput/dev/ayon-usd-resolver/install/Maya2024_2_Py310_Linux_Linux_x86_64",
+        "usd_root": "/usr/autodesk/mayausd/maya2024/0.22.0_202302171358-7c7ac33/mayausd/USD"
       }
     }
   }
