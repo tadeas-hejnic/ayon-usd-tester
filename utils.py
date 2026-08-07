@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ayon_api import ServerAPI
 
-from constants import CREDENTIALS_FILE_NAME
+import constants
 
 
 def get_ayon_api_key(server_url: str) -> str:
@@ -25,7 +25,7 @@ def get_ayon_api_key(server_url: str) -> str:
         KeyError: If the required credentials are missing in the file.
         ValueError: If the login fails.
     """
-    credentials_path = os.path.expanduser(CREDENTIALS_FILE_NAME)
+    credentials_path = os.path.expanduser(constants.CREDENTIALS_FILE_NAME)
     if not os.path.exists(credentials_path):
         raise FileNotFoundError(f"Credentials file not found at {credentials_path}")
 
@@ -34,6 +34,7 @@ def get_ayon_api_key(server_url: str) -> str:
 
     system_platform = platform.system().lower()
     key = f"{system_platform}-{server_url}"
+    print(key)
 
     if key not in credentials:
         raise KeyError(f"Credentials for '{key}' not found in the file")
@@ -44,6 +45,7 @@ def get_ayon_api_key(server_url: str) -> str:
     if not username or not password:
         raise KeyError(f"Missing 'username' or 'password' for '{key}'")
 
+    print(username, password, server_url)
     api = ServerAPI(server_url)
 
     try:
@@ -147,13 +149,13 @@ def build_environment(
     settings = {
         "usd" : {
             "ayon_usd_resolver": {
-                "ayon_log_lvl": "INFO",
+                "ayon_log_lvl": constants.DEFAULT_LOG_LEVEL,
                 "ayon_file_logger_enabled": "ON",
                 "file_logger_file_path": machine_specific_vars.get("AYON_USD_RESOLVER_LOG_FILE", ""),
                 "ayon_logger_logging_keys": "AYONUSDRESOLVER_RESOLVER,AYONUSDRESOLVER_RESOLVER_CONTEXT",
             },
             "usd": {
-                "usd_tf_debug": "AYON* PLUG* AYONUSDRESOLVER*",
+                "usd_tf_debug": constants.DEFAULT_TF_DEBUG,
             },
         }
     }
@@ -300,7 +302,7 @@ def get_usdresolve_path(
     return usdresolve_path
 
 
-def get_uris_from_file(uri_file_path: str | None) -> dict[str, str]:
+def get_uris(uri_file_path: str | None) -> dict[str, str]:
     """
     Load URIs and their expected resolved paths from a JSON file.
 
