@@ -34,7 +34,6 @@ def get_ayon_api_key(server_url: str) -> str:
 
     system_platform = platform.system().lower()
     key = f"{system_platform}-{server_url}"
-    print(key)
 
     if key not in credentials:
         raise KeyError(f"Credentials for '{key}' not found in the file")
@@ -45,7 +44,6 @@ def get_ayon_api_key(server_url: str) -> str:
     if not username or not password:
         raise KeyError(f"Missing 'username' or 'password' for '{key}'")
 
-    print(username, password, server_url)
     api = ServerAPI(server_url)
 
     try:
@@ -302,7 +300,7 @@ def get_usdresolve_path(
     return usdresolve_path
 
 
-def get_uris(uri_file_path: str | None) -> dict[str, str]:
+def get_uris_from_file(uri_file_path: str | None) -> dict[str, str]:
     """
     Load URIs and their expected resolved paths from a JSON file.
 
