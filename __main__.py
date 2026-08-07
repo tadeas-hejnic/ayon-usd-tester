@@ -81,6 +81,11 @@ def parse_arguments():
         help="Expected path printed by usdresolve",
         default=None,
     )
+    parser.add_argument(
+        "--resolver-log-file",
+        help="Write resolver stdout/stderr to this file instead of the terminal",
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -99,6 +104,7 @@ def run_resolve_test(
     resolver_dir,
     dcc_type,
     usd_root=None,
+    resolver_log_file=None,
     test_types=None,
 ):
     if test_types is None:
@@ -119,6 +125,10 @@ def run_resolve_test(
         )
 
         print(_color(f"Using usdresolve: {usdresolve_path}", _CYAN))
+        if resolver_log_file:
+            log_path = Path(resolver_log_file).expanduser()
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            print(_color(f"Resolver output: {log_path}", _CYAN))
 
         for uri, expected_path in uris.items():
             total_tests += 1
@@ -139,11 +149,24 @@ def run_resolve_test(
                 check=False,
             )
 
-            # Keep the resolver diagnostics visible to the user.
-            if result.stdout:
-                print(result.stdout, end="")
-            if result.stderr:
-                print(result.stderr, end="", file=sys.stderr)
+            if resolver_log_file:
+                with log_path.open("a", encoding="utf-8") as log_stream:
+                    log_stream.write(
+                        f"\n=== {dcc_type} {usdresolve_path} ===\n"
+                        f"URI: {uri}\n"
+                    )
+                    if result.stdout:
+                        log_stream.write(result.stdout)
+                    if result.stderr:
+                        log_stream.write(result.stderr)
+                    log_stream.write("\n")
+            else:
+                # Keep resolver diagnostics visible unless a log file was
+                # explicitly requested.
+                if result.stdout:
+                    print(result.stdout, end="")
+                if result.stderr:
+                    print(result.stderr, end="", file=sys.stderr)
 
             if result.returncode != 0:
                 failed_tests += 1
@@ -156,16 +179,16 @@ def run_resolve_test(
                 print(_color(f"Test failed: {error}", _RED), file=sys.stderr)
                 continue
 
-            if expected_path:
-                # usdresolve prints the resolved filesystem path after its
-                # diagnostics, for example:
-                # /home/ynput/ayon_projects/TestProject/.../file.usd
-                output_lines = [
-                    line.strip()
-                    for line in result.stdout.splitlines()
-                    if line.strip()
-                ]
-                if not output_lines:
+            # usdresolve prints the resolved filesystem path after its
+            # diagnostics, for example:
+            # /home/ynput/ayon_projects/TestProject/.../file.usd
+            output_lines = [
+                line.strip()
+                for line in result.stdout.splitlines()
+                if line.strip()
+            ]
+            if not output_lines:
+                if expected_path:
                     failed_tests += 1
                     print(
                         _color(
@@ -174,10 +197,17 @@ def run_resolve_test(
                         ),
                         file=sys.stderr,
                     )
-                    continue
+                continue
 
-                actual_path = output_lines[-1]
+            actual_path = output_lines[-1]
+            print(
+                _color(
+                    f"Resolved {uri} to {actual_path}",
+                    _GREEN,
+                )
+            )
 
+            if expected_path:
                 def normalize_path(path_value):
                     return os.path.normcase(
                     os.path.realpath(os.path.expanduser(path_value))
@@ -209,7 +239,7 @@ def main():
 
     dcc_config = utils.get_dcc_config(args.dcc_config)
 
-    uris = utils.get_uris(args.uri_file)
+    uris = utils.get_uris_from_file(args.uri_file)
     stats = StatsCreator()
 
     for dcc_name, dcc_versions in dcc_config.items():
@@ -240,6 +270,7 @@ def main():
                 resolver_dir=version_config["resolver_dir"],
                 dcc_type=dcc_name,
                 usd_root=usd_root,
+                resolver_log_file=args.resolver_log_file,
                 test_types=args.test_type
             )
             stats.update(dcc_name, version, total_tests, failed_tests)
