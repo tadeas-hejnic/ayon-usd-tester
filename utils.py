@@ -302,7 +302,7 @@ def get_usdresolve_path(
     return usdresolve_path
 
 
-def get_uris(uri_file_path: str | None) -> dict[str, str]:
+def get_uris_from_file(uri_file_path: str | None) -> dict[str, str]:
     """
     Load URIs and their expected resolved paths from a JSON file.
 
