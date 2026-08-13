@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+from functools import lru_cache
 from pathlib import Path
 
 from ayon_api import ServerAPI
@@ -10,6 +11,7 @@ from ayon_api import ServerAPI
 import constants
 
 
+@lru_cache(maxsize=None)
 def get_ayon_api_key(server_url: str) -> str:
     """
     Retrieve the AYON API key by logging in with credentials stored in a JSON file.
@@ -25,6 +27,10 @@ def get_ayon_api_key(server_url: str) -> str:
         KeyError: If the required credentials are missing in the file.
         ValueError: If the login fails.
     """
+    # The resolver environment is built once per test type and DCC version.
+    # Keep the token in memory so repeated environments do not log in again.
+    # This is intentionally process-local: API tokens should not be written to
+    # a cache file on disk.
     credentials_path = os.path.expanduser(constants.CREDENTIALS_FILE_NAME)
     if not os.path.exists(credentials_path):
         raise FileNotFoundError(f"Credentials file not found at {credentials_path}")
@@ -86,11 +92,12 @@ def build_environment(
         print(f"Warning: {e}. Proceeding without machine-specific variables.")
 
     # Prepare environment variables in a dictionary
+    api_key = os.environ.get("AYON_API_KEY") or get_ayon_api_key(server_url)
     env_vars = {
         "AYON_SERVER_URL": server_url,
         "AYON_PROJECT_NAME": project_name,
         "AYON_SITE_ID": "little-urban-cow",
-        "AYON_API_KEY": get_ayon_api_key(server_url),
+        "AYON_API_KEY": api_key,
     }
 
     # usdresolve is a Houdini launcher. It invokes ``hython`` through
