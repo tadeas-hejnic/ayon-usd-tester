@@ -213,8 +213,10 @@ def run_resolve_test(
                 )
             )
 
-            if expected_path:
+            if expected_path or test_type == "pinning-resolve":
                 def normalize_path(path_value):
+                    if not path_value:
+                        return ""
                     return os.path.normcase(
                         os.path.realpath(os.path.expanduser(path_value))
                     )
