@@ -132,6 +132,9 @@ def run_resolve_test(
             log_path = Path(resolver_log_file).expanduser()
             log_path.parent.mkdir(parents=True, exist_ok=True)
             print(_color(f"Resolver output: {log_path}", _CYAN))
+        
+        if test_type == "pinning-resolve":
+            uris = utils.update_uri_list_from_pinning_file(env["AYON_USD_RESOLVER_PINNING_FILE"], uris)
 
         for uri, expected_path in uris.items():
             total_tests += 1
@@ -213,23 +216,23 @@ def run_resolve_test(
             if expected_path:
                 def normalize_path(path_value):
                     return os.path.normcase(
-                    os.path.realpath(os.path.expanduser(path_value))
+                        os.path.realpath(os.path.expanduser(path_value))
                     )
 
                 if normalize_path(actual_path) != normalize_path(expected_path):
                     failed_tests += 1
                     message = (
-                    "Resolved path does not match expected path:\n"
-                    f"  expected: {expected_path}\n"
-                    f"  actual:   {actual_path}"
+                        "Resolved path does not match expected path:\n"
+                        f"  expected: {expected_path}\n"
+                        f"  actual:   {actual_path}"
                     )
                     print(_color(message, _RED), file=sys.stderr)
                     continue
 
                 print(
                     _color(
-                    f"Resolved path matches expected path: {expected_path}",
-                    _GREEN,
+                        f"Resolved path matches expected path: {expected_path}",
+                        _GREEN,
                     )
                 )
 

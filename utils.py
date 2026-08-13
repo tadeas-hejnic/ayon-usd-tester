@@ -330,3 +330,29 @@ def get_uris_from_file(uri_file_path: str | None) -> dict[str, str]:
         raise TypeError(f"Expected a JSON object in the file {uri_file_path}")
 
     return uris
+
+
+def update_uri_list_from_pinning_file(pinning_file_path: str, uris: dict[str, str]) -> dict[str, str]:
+    """
+    Update the URI list based on the pinning file.
+
+    Args:
+        pinning_file_path (str): Path to the pinning JSON file.
+        uris (dict[str, str]): Original dictionary of URIs and their expected resolved paths.
+
+    Returns:
+        dict[str, str]: Updated dictionary of URIs and their expected resolved paths based on the pinning file.
+    """
+    if not os.path.exists(pinning_file_path):
+        raise FileNotFoundError(f"Pinning file not found at {pinning_file_path}")
+
+    with open(pinning_file_path, "r") as f:
+        pinning_data = json.load(f)
+
+    if not isinstance(pinning_data, dict):
+        raise TypeError(f"Expected a JSON object in the pinning file {pinning_file_path}")
+
+    return {
+        uri: pinning_data["ayon_resolver_pinning_data"].get(uri, "")
+        for uri in uris
+    }
