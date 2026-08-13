@@ -117,7 +117,7 @@ def run_resolve_test(
         env = utils.build_environment(
             server_url=server,
             project_name=project_name,
-            machine_settings_file="path/to/machine_settings.json",
+            machine_settings_file=str(Path(__file__).parent / "settings" / "machine_settings.json"),
             resolver_dir=resolver_dir,
             dcc_executable=dcc_executable,
             usd_root=usd_root,
