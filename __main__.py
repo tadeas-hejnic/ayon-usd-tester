@@ -110,6 +110,9 @@ def run_resolve_test(
     if test_types is None:
         test_types = ["resolve"]
 
+    if "all" in [t.lower() for t in test_types]:
+        test_types = ["resolve", "pinning-resolve"]
+
     total_tests = 0
     failed_tests = 0
 
