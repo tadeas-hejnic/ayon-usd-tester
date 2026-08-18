@@ -14,6 +14,10 @@ _RED = "\033[31m"
 _GREEN = "\033[32m"
 _CYAN = "\033[36m"
 
+# Temporary script used by ``run_python_test``.  Keep this as a repository
+# relative path so the test runner can be moved without changing the command.
+_PYTHON_TEST_SCRIPT = Path(__file__).parent / "scripts" / "simple_import.py"
+
 
 def _color(text, color):
     """Color terminal output without adding escape codes to redirected logs."""
@@ -89,10 +93,42 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def fetch_ayon_uri():
-    """Fetch AYON URI from a file (placeholder implementation)."""
-    # Replace this with actual logic to fetch AYON URI from a file
-    return "file://path/to/ayon"
+def run_python_test(dcc_executable, dcc_type, env=None):
+    """Run the Python smoke-test script with the selected DCC's Python.
+
+    The configured DCC executable points to ``houdini`` or ``maya``.  Their
+    command-line Python executables live beside them as ``hython`` and
+    ``mayapy`` respectively.
+
+    Args:
+        dcc_executable: Path to the configured DCC executable.
+        dcc_type: DCC name (currently ``houdini`` or ``maya``).
+        env: Optional environment for the child process.
+
+    Returns:
+        The :class:`subprocess.CompletedProcess` returned by the DCC Python.
+    """
+    script_path = _PYTHON_TEST_SCRIPT.resolve()
+    if not script_path.is_file():
+        raise FileNotFoundError(f"Python test script was not found: {script_path}")
+
+    dcc_path = Path(dcc_executable).expanduser().resolve()
+    python_name = {
+        "houdini": "hython.exe" if os.name == "nt" else "hython",
+        "maya": "mayapy.exe" if os.name == "nt" else "mayapy",
+    }.get(dcc_type.lower())
+    if python_name is None:
+        raise ValueError(f"Unsupported DCC type for Python test: {dcc_type}")
+
+    python_path = dcc_path.parent / python_name
+    if not python_path.is_file():
+        raise FileNotFoundError(f"DCC Python executable was not found: {python_path}")
+
+    return subprocess.run(
+        [str(python_path), str(script_path)],
+        env={**os.environ, **(env or {})},
+        check=False,
+    )
 
 
 def run_resolve_test(
@@ -115,6 +151,9 @@ def run_resolve_test(
 
     total_tests = 0
     failed_tests = 0
+
+    print(len(test_types), "test types:", ", ".join(test_types))
+    print(len(uris), "URIs to test:")
 
     for test_type in test_types:
         env = utils.build_environment(
