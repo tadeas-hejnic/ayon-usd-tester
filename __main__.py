@@ -317,19 +317,25 @@ def main():
                 usd_root=usd_root,
             )
 
-            total_tests, failed_tests = run_resolve_test(
-                server=args.server,
-                project_name=args.project,
-                uris=uris if uris else {args.uri: args.expected_path},
-                dcc_executable=version_config["executable"],
-                usdresolve_path=usdresolve_path,
-                resolver_dir=version_config["resolver_dir"],
-                dcc_type=dcc_name,
-                usd_root=usd_root,
-                resolver_log_file=args.resolver_log_file,
-                test_types=args.test_type
-            )
-            stats.update(dcc_name, version, total_tests, failed_tests)
+            test_types = [t.lower() for t in args.test_type]
+
+            if "all" in test_types:
+                test_types = ["resolve", "pinning-resolve", "python"]
+            
+            if "resolve" in test_types or "pinning-resolve" in test_types:
+                total_tests, failed_tests = run_resolve_test(
+                    server=args.server,
+                    project_name=args.project,
+                    uris=uris if uris else {args.uri: args.expected_path},
+                    dcc_executable=version_config["executable"],
+                    usdresolve_path=usdresolve_path,
+                    resolver_dir=version_config["resolver_dir"],
+                    dcc_type=dcc_name,
+                    usd_root=usd_root,
+                    resolver_log_file=args.resolver_log_file,
+                    test_types=args.test_type
+                )
+                stats.update(dcc_name, version, total_tests, failed_tests)
 
             if "python" in [t.lower() for t in args.test_type]:
                 total_tests, failed_tests = run_python_test(
