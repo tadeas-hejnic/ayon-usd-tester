@@ -106,29 +106,38 @@ def run_python_test(dcc_executable, dcc_type, env=None):
         env: Optional environment for the child process.
 
     Returns:
-        The :class:`subprocess.CompletedProcess` returned by the DCC Python.
+        A tuple (total_tests, failed_tests) indicating the number of tests run and failed.
     """
-    script_path = _PYTHON_TEST_SCRIPT.resolve()
-    if not script_path.is_file():
-        raise FileNotFoundError(f"Python test script was not found: {script_path}")
+    script_paths = [_PYTHON_TEST_SCRIPT.resolve()]
+    total_tests = 0
+    failed_tests = 0
 
-    dcc_path = Path(dcc_executable).expanduser().resolve()
-    python_name = {
-        "houdini": "hython.exe" if os.name == "nt" else "hython",
-        "maya": "mayapy.exe" if os.name == "nt" else "mayapy",
-    }.get(dcc_type.lower())
-    if python_name is None:
-        raise ValueError(f"Unsupported DCC type for Python test: {dcc_type}")
+    for script_path in script_paths:
+        if not script_path.is_file():
+            raise FileNotFoundError(f"Python test script was not found: {script_path}")
 
-    python_path = dcc_path.parent / python_name
-    if not python_path.is_file():
-        raise FileNotFoundError(f"DCC Python executable was not found: {python_path}")
+        dcc_path = Path(dcc_executable).expanduser().resolve()
+        python_name = {
+            "houdini": "hython.exe" if os.name == "nt" else "hython",
+            "maya": "mayapy.exe" if os.name == "nt" else "mayapy",
+        }.get(dcc_type.lower())
+        if python_name is None:
+            raise ValueError(f"Unsupported DCC type for Python test: {dcc_type}")
 
-    return subprocess.run(
-        [str(python_path), str(script_path)],
-        env={**os.environ, **(env or {})},
-        check=False,
-    )
+        python_path = dcc_path.parent / python_name
+        if not python_path.is_file():
+            raise FileNotFoundError(f"DCC Python executable was not found: {python_path}")
+
+        result = subprocess.run(
+            [str(python_path), str(script_path)],
+            env={**os.environ, **(env or {})},
+            check=False,
+        )
+        total_tests += 1
+        if result.returncode != 0:
+            failed_tests += 1
+
+    return total_tests, failed_tests
 
 
 def run_resolve_test(
@@ -321,6 +330,21 @@ def main():
                 test_types=args.test_type
             )
             stats.update(dcc_name, version, total_tests, failed_tests)
+
+            if "python" in [t.lower() for t in args.test_type]:
+                total_tests, failed_tests = run_python_test(
+                    version_config["executable"],
+                    dcc_name,
+                    env=utils.build_environment(
+                        server_url=args.server,
+                        project_name=args.project,
+                        machine_settings_file=str(Path(__file__).parent / "settings" / "machine_settings.json"),
+                        resolver_dir=version_config["resolver_dir"],
+                        dcc_executable=version_config["executable"],
+                        usd_root=usd_root,
+                    ),
+                )
+                stats.update(dcc_name, version, total_tests, failed_tests)
 
     summary_color = _RED if stats.failed_tests else _GREEN
     print(_color(str(stats), summary_color))
