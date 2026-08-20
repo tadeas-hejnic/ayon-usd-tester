@@ -27,7 +27,11 @@ def cases_from_pinning_file(path: str | Path, cases: list[TestCase]) -> list[Tes
     return [
         TestCase(
             uri=case.uri,
-            expected_path=pinning_data.get(case.uri, ""),
+            expected_path=(
+                pinning_data[case.uri]
+                if case.uri in pinning_data
+                else case.uri
+            ),
             test_type="pinning-resolve",
         )
         for case in cases
