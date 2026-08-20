@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# AYON USD tester local configuration and output
+config.json
+tests/out/
+*.log
+
+.credentials.json
