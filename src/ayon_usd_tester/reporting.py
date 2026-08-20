@@ -7,10 +7,12 @@ from .models import TestResult
 
 def format_report(results_by_installation: dict[tuple[str, str], list[TestResult]]) -> str:
     rows = []
+    failed_results = []
     total = failed = 0
     for (dcc_name, version), results in results_by_installation.items():
         count = len(results)
         failures = sum(not result.passed for result in results)
+        failed_results.extend((dcc_name, version, result) for result in results if not result.passed)
         total += count
         failed += failures
         rows.append((dcc_name, version, str(count), str(failures)))
@@ -23,8 +25,21 @@ def format_report(results_by_installation: dict[tuple[str, str], list[TestResult
     def format_row(row):
         return "| " + " | ".join(value.ljust(width) for value, width in zip(row, widths)) + " |"
 
-    return "\n".join(
+    report = "\n".join(
         ["Resolver test summary", separator, format_row(headers), separator]
         + [format_row(row) for row in rows]
         + [separator]
     )
+
+    if failed_results:
+        report += "\n\nFailed tests\n"
+        for dcc_name, version, result in failed_results:
+            report += (
+                f"- {dcc_name} {version} | {result.case.test_type} | "
+                f"{result.case.uri}\n"
+                f"  expected: {result.case.expected_path or '<none>'}\n"
+                f"  actual:   {result.actual_path or '<none>'}\n"
+                f"  reason:   {result.error or 'unknown failure'}\n"
+            )
+
+    return report
