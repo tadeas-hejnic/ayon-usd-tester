@@ -15,7 +15,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run AYON USD Resolver smoke tests.")
     parser.add_argument("--server", required=True, help="AYON server URL")
     parser.add_argument("--project", required=True, help="AYON project name")
-    uri_group = parser.add_mutually_exclusive_group(required=True)
+    uri_group = parser.add_mutually_exclusive_group()
     uri_group.add_argument("--uri", help="AYON URI to test")
     uri_group.add_argument("--uri-file", help="JSON object mapping URIs to expected paths")
     parser.add_argument("--dcc", default="ALL", help="DCC name or ALL")
@@ -26,14 +26,21 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--expected-path", "--expected", dest="expected_path")
     parser.add_argument("--resolver-log-file", help="Append resolver output to this file")
     parser.add_argument("--timeout", type=int, default=300, help="Subprocess timeout in seconds")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    test_types = {value.casefold() for value in args.test_type}
+    needs_uris = "all" in test_types or bool(test_types & {"resolve", "pinning-resolve"})
+    if needs_uris and not (args.uri or args.uri_file):
+        parser.error("--uri or --uri-file is required for resolve tests")
+    return args
 
 
 def _test_cases(args: argparse.Namespace) -> list[TestCase]:
-    base_cases = load_cases(args.uri, args.uri_file, args.expected_path)
     test_types = {value.casefold() for value in args.test_type}
     if "all" in test_types:
         test_types = {"resolve", "pinning-resolve", "python"}
+    base_cases = []
+    if test_types & {"resolve", "pinning-resolve"}:
+        base_cases = load_cases(args.uri, args.uri_file, args.expected_path)
     cases = []
     if "resolve" in test_types:
         cases.extend(base_cases)
